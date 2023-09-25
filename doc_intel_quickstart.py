@@ -25,7 +25,11 @@ def format_polygon(polygon):
 
 def analyze_general_documents():
     # sample document
-    docUrl = "https://raw.githubusercontent.com/Azure-Samples/cognitive-services-REST-api-samples/master/curl/form-recognizer/sample-layout.pdf"
+    # docUrl = "https://raw.githubusercontent.com/Azure-Samples/cognitive-services-REST-api-samples/master/curl/form-recognizer/sample-layout.pdf"
+    # docUrl = "https://raw.githubusercontent.com/rcgreen99/ms-doc-ai/88ef4ba4be08f8586c2166ab42c5766c1bd36b3f/data/original.pdf"
+    # docUrl = "https://raw.githubusercontent.com/rcgreen99/ms-doc-ai/5fcdc420d02d7d4374a74320860cfc57464500cd/data/compressed_original.pdf"
+    docUrl = "https://raw.githubusercontent.com/rcgreen99/ms-doc-ai/1637d85d97771c8abe698dd598112617e303dc24/data/revised.pdf"
+    # docUrl = "https://raw.githubusercontent.com/rcgreen99/ms-doc-ai/1c77041f91fbaee4cc2793ba4e7a5e513650748a/data/00031_original.pdf"
 
     # create your `DocumentAnalysisClient` instance and `AzureKeyCredential` variable
     document_analysis_client = DocumentAnalysisClient(
@@ -99,6 +103,20 @@ def analyze_general_documents():
                 )
             )
 
+    import matplotlib.pyplot as plt
+
+    # get the first page of the document
+    page = result.pages[0]
+
+    # set up matplotlib figure and size it to fit 2 columns of text
+    plt.figure(figsize=(15, 15))
+
+    # open the image file and draw boxes around detected items
+    image = plt.imread("data/00027_original.png")
+
+    # display the image
+    plt.imshow(image, cmap="gray")
+
     for table_idx, table in enumerate(result.tables):
         print(
             "Table # {} has {} rows and {} columns".format(
@@ -122,12 +140,26 @@ def analyze_general_documents():
                 )
             )
             for region in cell.bounding_regions:
+                # draw using matplotlib
+                plt.gca().add_patch(
+                    plt.Polygon(
+                        [[point[0] * 300, point[1] * 300] for point in region.polygon],
+                        fill=False,
+                        color="red",
+                        linewidth=1,
+                    )
+                )
+
                 print(
                     "...content on page {} is within bounding box '{}'\n".format(
                         region.page_number,
                         format_polygon(region.polygon),
                     )
                 )
+
+    # save the image
+    plt.savefig("annotated_output.png", dpi=300)
+
     print("----------------------------------------")
 
 
